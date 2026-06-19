@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Organization Ontology Visualizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Vis.js Network Standalone -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER bar -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-circle-nodes logo-icon"></i>
+                <div class="logo-text">
+                    <h1>Academic Org</h1>
+                    <span>Ontology Explorer</span>
+                </div>
+            </div>
+            
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-badge">
+                    <span class="stat-label">Classes</span>
+                    <span class="stat-value" id="stat-classes">0</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Object Props</span>
+                    <span class="stat-value" id="stat-obj-props">0</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Datatype Props</span>
+                    <span class="stat-value" id="stat-data-props">0</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Individuals</span>
+                    <span class="stat-value" id="stat-individuals">0</span>
+                </div>
+            </div>
+            
+            <div class="actions-area">
+                <label class="btn btn-secondary upload-btn">
+                    <i class="fa-solid fa-file-import"></i> Load OWL
+                    <input type="file" id="owl-file-input" accept=".owl,.xml,.rdf" style="display: none;">
+                </label>
+                <a href="file:///C:/Users/murta/Desktop/AcademicOrganization_Report.pdf" target="_blank" class="btn btn-primary">
+                    <i class="fa-solid fa-file-pdf"></i> View PDF Report
+                </a>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="app-main">
+            <!-- LEFT PANEL: Navigation and lists -->
+            <aside class="sidebar" id="left-sidebar">
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="classes-tab">
+                        <i class="fa-solid fa-sitemap"></i> Classes
+                    </button>
+                    <button class="tab-btn" data-tab="properties-tab">
+                        <i class="fa-solid fa-link"></i> Properties
+                    </button>
+                    <button class="tab-btn" data-tab="individuals-tab">
+                        <i class="fa-solid fa-users"></i> Individuals
+                    </button>
+                </div>
+                
+                <div class="sidebar-content">
+                    <!-- SEARCH -->
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="sidebar-search" placeholder="Search ontology...">
+                        <button id="clear-search" class="clear-btn" style="display: none;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- TAB 1: CLASSES -->
+                    <div class="tab-pane active" id="classes-tab">
+                        <div class="tree-container" id="class-tree">
+                            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading hierarchy...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- TAB 2: PROPERTIES -->
+                    <div class="tab-pane" id="properties-tab">
+                        <div class="properties-list-container">
+                            <h3>Object Properties</h3>
+                            <ul class="prop-list" id="object-properties-list"></ul>
+                            <h3 class="spacer-top">Datatype Properties</h3>
+                            <ul class="prop-list" id="datatype-properties-list"></ul>
+                        </div>
+                    </div>
+                    
+                    <!-- TAB 3: INDIVIDUALS -->
+                    <div class="tab-pane" id="individuals-tab">
+                        <div class="individuals-container">
+                            <div class="group-select-wrapper">
+                                <label for="individual-class-filter">Filter by Class:</label>
+                                <select id="individual-class-filter">
+                                    <option value="all">All Classes</option>
+                                </select>
+                            </div>
+                            <ul class="ind-list" id="individuals-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CENTER PANEL: Graph Canvas -->
+            <section class="canvas-container">
+                <div id="graph-network"></div>
+                
+                <!-- CANVAS OVERLAYS -->
+                <!-- Legend -->
+                <div class="canvas-card legend-card">
+                    <h4>Legend</h4>
+                    <div class="legend-items">
+                        <div class="legend-item"><span class="legend-dot class-dot"></span> Class</div>
+                        <div class="legend-item"><span class="legend-dot object-prop-dot"></span> Object Property</div>
+                        <div class="legend-item"><span class="legend-dot datatype-prop-dot"></span> Datatype Property</div>
+                        <div class="legend-item"><span class="legend-dot individual-dot"></span> Individual</div>
+                    </div>
+                    <div class="legend-edges">
+                        <div class="legend-edge-item"><span class="legend-line sub-class-line"></span> Subclass Of</div>
+                        <div class="legend-edge-item"><span class="legend-line type-line"></span> Instance Of</div>
+                        <div class="legend-edge-item"><span class="legend-line relation-line"></span> Object relation</div>
+                    </div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="canvas-card controls-card">
+                    <button class="control-btn" id="zoom-in" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+                    <button class="control-btn" id="zoom-out" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+                    <button class="control-btn" id="fit-graph" title="Fit Entire Graph"><i class="fa-solid fa-expand"></i></button>
+                    <button class="control-btn" id="toggle-physics" title="Pause Physics"><i class="fa-solid fa-play"></i></button>
+                    <button class="control-btn" id="toggle-layout" title="Hierarchical Layout"><i class="fa-solid fa-network-wired"></i></button>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: Details Inspector -->
+            <aside class="inspector" id="right-inspector">
+                <div class="inspector-header">
+                    <h3><i class="fa-solid fa-circle-info"></i> Inspector</h3>
+                    <button class="close-inspector-btn" id="close-inspector">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <div class="inspector-content" id="inspector-body">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        <p>Click on any node in the graph, list, or hierarchy to inspect its semantic metadata and relationships.</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
