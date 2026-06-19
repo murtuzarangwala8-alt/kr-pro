@@ -65,21 +65,4 @@ The visualizer is a modern client-side Single Page Application (SPA) designed to
 *   **Layout Controls**: Zoom, pan, fit graph, pause physics, or toggle a strict hierarchical (up-down) layout.
 *   **Dynamic OWL Uploader**: Upload any custom OWL ontology file via the **Load OWL** button.
 
-### 🚀 Running the Visualizer Locally:
-Due to browser security restrictions on local file access (CORS), the visualizer must be run via a simple HTTP server:
 
-#### Using Python (Recommended):
-Open your terminal in this repository folder and run:
-```bash
-python -m http.server 8080
-```
-Then, open your web browser and navigate to:
-```
-http://localhost:8080
-```
-
-#### Using Node.js:
-```bash
-npx http-server -p 8080
-```
-Then, navigate to `http://localhost:8080`.
